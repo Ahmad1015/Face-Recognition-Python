@@ -1,31 +1,52 @@
 import numpy as np
 import face_recognition
 import cv2
+import time
 
 # Load a sample picture and learn how to recognize it.
-known_image = face_recognition.load_image_file("Official_photo.jpeg")
-known_face_encoding = face_recognition.face_encodings(known_image)[0]
+try:
+    known_image = face_recognition.load_image_file("Official_photo.jpeg")
+    known_face_encoding = face_recognition.face_encodings(known_image)[0]
+    print("Known face encoding loaded successfully.")
+except Exception as e:
+    print(f"Error loading known image: {e}")
+    exit()
 
 # Create arrays of known face encodings and their names
 known_face_encodings = [known_face_encoding]
-known_face_names = ["Aksam"]
+known_face_names = ["Ahmad"]
 
 # Initialize some variables
 video_capture = cv2.VideoCapture(0)
 
+if not video_capture.isOpened():
+    print("Error: Could not open webcam.")
+    exit()
+
+print("Webcam opened successfully.")
+
 while True:
     # Grab a single frame of video
     ret, frame = video_capture.read()
+    if not ret:
+        print("Error: Failed to capture image.")
+        break
 
     # Resize frame of video to 1/4 size for faster processing
     small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
 
     # Convert the image from BGR color (OpenCV) to RGB color (face_recognition)
-    rgb_small_frame = small_frame[:, :, ::-1]
+    rgb_small_frame = np.ascontiguousarray(small_frame[:, :, ::-1])
 
     # Find all the faces and face encodings in the current frame of video
     face_locations = face_recognition.face_locations(rgb_small_frame)
     face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
+
+    print(f"Found {len(face_locations)} face(s) in the current frame.")
+
+    # Print face encodings for debugging
+    for face_encoding in face_encodings:
+        print("Face encoding:", face_encoding)
 
     # Loop through each face found in the current frame of video
     for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
@@ -56,10 +77,18 @@ while True:
     # Display the resulting image
     cv2.imshow('Video', frame)
 
+    # Debug message for each frame
+    print("Frame displayed.")
+
     # Hit 'q' on the keyboard to quit!
     if cv2.waitKey(1) & 0xFF == ord('q'):
+        print("Exiting...")
         break
+
+    # Add a small delay to see the output better
+    time.sleep(0.1)
 
 # Release handle to the webcam
 video_capture.release()
 cv2.destroyAllWindows()
+print("Webcam and windows released/closed successfully.")

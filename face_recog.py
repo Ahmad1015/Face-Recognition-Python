@@ -1,7 +1,6 @@
 import numpy as np
 import face_recognition
 import cv2
-import time
 
 # Load a sample picture and learn how to recognize it.
 try:
@@ -17,13 +16,13 @@ known_face_encodings = [known_face_encoding]
 known_face_names = ["Ahmad"]
 
 # Initialize some variables
-video_capture = cv2.VideoCapture(0)
+video_capture = cv2.VideoCapture("http://192.168.10.6:4747/video")
 
 if not video_capture.isOpened():
-    print("Error: Could not open webcam.")
+    print("Error: Could not open IP camera stream.")
     exit()
 
-print("Webcam opened successfully.")
+print("IP camera stream opened successfully.")
 
 while True:
     # Grab a single frame of video
@@ -32,8 +31,8 @@ while True:
         print("Error: Failed to capture image.")
         break
 
-    # Resize frame of video to 1/4 size for faster processing
-    small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
+    # Resize frame of video to 1/2 size for faster processing
+    small_frame = cv2.resize(frame, (0, 0), fx=0.5, fy=0.5)
 
     # Convert the image from BGR color (OpenCV) to RGB color (face_recognition)
     rgb_small_frame = np.ascontiguousarray(small_frame[:, :, ::-1])
@@ -60,11 +59,11 @@ while True:
         if matches[best_match_index]:
             name = known_face_names[best_match_index]
 
-        # Scale back up face locations since the frame we detected in was scaled to 1/4 size
-        top *= 4
-        right *= 4
-        bottom *= 4
-        left *= 4
+        # Scale back up face locations since the frame we detected in was scaled to 1/2 size
+        top *= 2
+        right *= 2
+        bottom *= 2
+        left *= 2
 
         # Draw a box around the face
         cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
@@ -85,10 +84,7 @@ while True:
         print("Exiting...")
         break
 
-    # Add a small delay to see the output better
-    time.sleep(0.1)
-
 # Release handle to the webcam
 video_capture.release()
 cv2.destroyAllWindows()
-print("Webcam and windows released/closed successfully.")
+print("IP camera and windows released/closed successfully.")
